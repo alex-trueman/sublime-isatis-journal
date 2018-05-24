@@ -1,0 +1,127 @@
+%YAML 1.2
+---
+name: Isatis Journal
+file_extensions:
+  - ijnl
+scope: source.ijnl
+
+# Alex Trueman
+
+contexts:
+
+  main:
+
+    - include: comments
+    - include: validations
+    - include: transforms
+
+    # Loop syntax
+    - match: (?i)(?=^%loop)
+      push: loop
+
+    - include: variables
+    - include: keywords
+
+  variables:
+
+    # All caps variable (use for global variables and parameters).
+    - match: '(\$)([A-Z_][A-Z0-9_]*)(\n|\b|\s|\[|\])'
+      captures:
+        1: punctuation.definition.variable
+        2: variable.other.constant
+
+    # Variables.
+    - match: '(\$)([a-zA-Z_][a-zA-Z0-9_]*)(\n|\b|\s|\[|\])'
+      captures:
+        1: punctuation.definition.variable
+        2: variable.other.readwrite
+
+    # Special count variables.
+    - match: '(\$)(#|0)([a-zA-Z0-9_]+)'
+      captures:
+        1: punctuation.definition.variable
+        2: punctuation.definition.variable
+        3: variable.other.readwrite
+
+  keywords:
+
+    # Keyword.
+    - match: (?i)(%)(var|loop|endloop|include|execute|cdw_execute|set_cdw|refresh_study|redirect|clear|if_success|do|else_do|end_do|echo|status|stop)(?=(\s|$))
+      captures:
+        1: punctuation.definition.variable
+        2: variable.function.command
+
+#      scope: keyword.other.command
+
+    # Bulletin label.
+    - match: '(^\s.+\s=B=\s)(.+$)'
+      captures:
+        1: punctuation.definition.keyword
+        2: keyword.other.command
+
+    # Parameter type and status.
+    - match: '^\s.{38}\s(=[NAM][=\?!])'
+      captures:
+        1: keyword.other.special-method.typestatus.ijnl
+
+
+  comments:
+
+    # Special highlighted comment.
+    - match: '(^#[\*]{1})(.*$)'
+      captures:
+        1: punctuation.definition.comment
+        2: markup.bold
+
+    # Special highlighted comment.
+    - match: '(^#{3})(\s+.*$)'
+      captures:
+        1: punctuation.definition.comment
+        2: markup.bold
+
+    # TODO comment.
+    - match: '(^#TODO:)(.*$)'
+      captures:
+        1: invalid.illegal
+        2: comment.line
+
+    # Comments.
+    - match: '(^#{1,2})(.*$)'
+      captures:
+        1: punctuation.definition.comment
+        2: comment.line
+
+  validations:
+  # Some simple checks for common issues.
+
+    # Illegal first column character.
+    - match: ^[^%\s#].*
+      scope: invalid.illegal.firstcolumn.ijnl
+
+    # Illegal second column character.
+    - match: ^[%\s#][%\s#].*
+      scope: invalid.illegal.secondcolumn.ijnl
+
+  loop:
+
+    # Loop keywords
+    - match: \s(to|step)\s
+      scope: keyword.other.special-method.loop.ijnl
+
+    - match: $
+      pop: true
+    - include: keywords
+    - include: variables
+
+  transforms:
+
+    # Elementary.
+    - match: (?i)\b(ge|le|ifelse|def|indicator|interval|low|max|min|patch|sign|undef|up|within|abs|ceil|exp|floor|log10|ln|pow|round|sqrt|plane2direction|acos|acotan|asin|atan|cos|cosd|cosh|cotan|cotand|azimuth_dip2gradx|dip_azimuth2grady|rotx|roty|rotz|rotxyz|gradxy2azimuth|gradxy2dip|gradxy2azimuth_dip|gradxy2rotx|gradxy2roty|gradxy2rotz|gradxy2rotxyz|sin|sind|sinh|tan|tand|tanh|year|month|day|hour|minute|second|day_of_year|day_of_month|week_of_year|seconds_from_date|data_from_seconds|date2excel_serial|excel_serial2date|date2decimal_year|decimal_year2date|simulate_binomial|simulate_gamma|simulate_gaussian|simulate_poisson|simulate_triangle|simulate_uniform|df_gaussian|invdf_gaussian|df_gamma|cdf_gamma|invcdf_gamma)(?=\()
+      scope: keyword.other.special-method.elementary.ijnl
+
+    # Grid.
+    - match: (?i)\b(real2binary|beinary2real|thresh|duplicate|erosion|dilation|closing|opening|intersect|union|negation|grad_xp|grad_up|grad_xm|grad_um|gradx|gradu|grad_yp|grad_vp|grad_ym|grad_vm|grady|gradv|grad_zp|grad_wp|grad_zm|grad_wm|gradz|gradw|gradxyz|graduvw|deltax|deltau|deltay|deltav|deltaz|deltaw|gradient|azimuth|laplacian|divergence|pointflux|distance|labelling_cross|labelling_block|labelcond_cross|labelcond_block|moving_average|moving_median|moving_average_cond|moving_median_cond|fill_average|imagestat|shadowing|integrate|dynprogu|dynprogv|dynprogw|maxplaneu|maxplanev|maxplanew|fftx|fftx_reim|ffty|ffty_reim|fftz|fftz_reim|ifftx|iffty|ifftz|fftxy|fftxy_reim|fftxz|fftxz_reim|fftyz|fftyz_reim|ifftxy|ifftxz|ifftyz|fftxyz|fftxyz_reim|ifftxyz)(?=\()
+      scope: keyword.other.special-method.grid.ijnl
+
+
+...
